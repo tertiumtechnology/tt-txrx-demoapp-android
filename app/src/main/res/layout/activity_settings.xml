@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
+
+    <include
+        layout="@layout/toolbar"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/timeouts_heading"
+        style="@style/TextAppearance.AppCompat.Medium"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/settings_heading_height"
+        android:text="@string/timeouts_heading"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:layout_marginEnd="@dimen/settings_text_margin"
+        android:layout_marginTop="@dimen/settings_text_margin"
+        android:layout_marginBottom="@dimen/settings_text_margin"
+
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+
+        app:layout_constraintTop_toBottomOf="@+id/device_toolbar"/>
+
+
+    <TextView
+        android:id="@+id/connect_timeout_text_view"
+        style="@style/AppTheme.TextAppearance.SettingsLabel"
+        android:layout_width="@dimen/settings_tv_width"
+        android:layout_height="@dimen/settings_tv_height"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:layout_marginTop="@dimen/settings_heading_first_sub_view_marginTop"
+        android:labelFor="@+id/connect_timeout"
+        android:text="@string/connect_timeout_text"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/timeouts_heading"/>
+
+    <EditText
+        android:id="@+id/connect_timeout"
+        android:layout_width="@dimen/settings_et_width"
+        android:layout_height="@dimen/settings_view_height"
+        android:layout_marginEnd="@dimen/settings_text_margin"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:gravity="end"
+        android:inputType="number"
+        android:imeOptions="actionDone"
+
+        app:layout_constraintBaseline_toBaselineOf="@+id/connect_timeout_text_view"
+        app:layout_constraintLeft_toRightOf="@+id/connect_timeout_text_view"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <Button
+        android:id="@+id/connect_timeout_button_minus"
+        android:layout_width="@dimen/settings_view_height"
+        android:layout_height="@dimen/settings_view_height"
+        android:text="@string/minus"
+
+        app:layout_constraintBottom_toBottomOf="@+id/connect_timeout"
+        app:layout_constraintRight_toLeftOf="@+id/connect_timeout"
+        app:layout_constraintTop_toTopOf="@+id/connect_timeout"/>
+
+    <Button
+        android:id="@+id/connect_timeout_button_plus"
+        android:layout_width="@dimen/settings_view_height"
+        android:layout_height="@dimen/settings_view_height"
+        android:text="@string/plus"
+
+        app:layout_constraintBottom_toBottomOf="@+id/connect_timeout"
+        app:layout_constraintLeft_toRightOf="@+id/connect_timeout"
+        app:layout_constraintTop_toTopOf="@+id/connect_timeout"/>
+
+
+    <TextView
+        android:id="@+id/write_timeout_text_view"
+        style="@style/AppTheme.TextAppearance.SettingsLabel"
+        android:layout_width="@dimen/settings_tv_width"
+        android:layout_height="@dimen/settings_tv_height"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:layout_marginTop="@dimen/settings_text_marginTop"
+        android:labelFor="@+id/write_timeout"
+        android:text="@string/write_timeout_text"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/connect_timeout_text_view"/>
+
+    <EditText
+        android:id="@+id/write_timeout"
+        android:layout_width="@dimen/settings_et_width"
+        android:layout_height="@dimen/settings_view_height"
+        android:layout_marginEnd="@dimen/settings_text_margin"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:gravity="end"
+        android:inputType="number"
+        android:imeOptions="actionDone"
+
+        app:layout_constraintBaseline_toBaselineOf="@+id/write_timeout_text_view"
+        app:layout_constraintLeft_toRightOf="@+id/write_timeout_text_view"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <Button
+        android:id="@+id/write_timeout_button_minus"
+        android:layout_width="@dimen/settings_view_height"
+        android:layout_height="@dimen/settings_view_height"
+        android:text="@string/minus"
+
+        app:layout_constraintBottom_toBottomOf="@+id/write_timeout"
+        app:layout_constraintRight_toLeftOf="@+id/write_timeout"
+        app:layout_constraintTop_toTopOf="@+id/write_timeout"/>
+
+    <Button
+        android:id="@+id/write_timeout_button_plus"
+        android:layout_width="@dimen/settings_view_height"
+        android:layout_height="@dimen/settings_view_height"
+        android:text="@string/plus"
+
+        app:layout_constraintBottom_toBottomOf="@+id/write_timeout"
+        app:layout_constraintLeft_toRightOf="@+id/write_timeout"
+        app:layout_constraintTop_toTopOf="@+id/write_timeout"/>
+
+
+    <TextView
+        android:id="@+id/first_read_timeout_text_view"
+        style="@style/AppTheme.TextAppearance.SettingsLabel"
+        android:layout_width="@dimen/settings_tv_width"
+        android:layout_height="@dimen/settings_tv_height"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:layout_marginTop="@dimen/settings_text_marginTop"
+        android:labelFor="@+id/first_read_timeout"
+        android:text="@string/first_read_timeout_text"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/write_timeout_text_view"/>
+
+    <EditText
+        android:id="@+id/first_read_timeout"
+        android:layout_width="@dimen/settings_et_width"
+        android:layout_height="@dimen/settings_view_height"
+        android:layout_marginEnd="@dimen/settings_text_margin"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:gravity="end"
+        android:inputType="number"
+        android:imeOptions="actionDone"
+
+        app:layout_constraintBaseline_toBaselineOf="@+id/first_read_timeout_text_view"
+        app:layout_constraintLeft_toRightOf="@+id/first_read_timeout_text_view"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <Button
+        android:id="@+id/first_read_timeout_button_minus"
+        android:layout_width="@dimen/settings_view_height"
+        android:layout_height="@dimen/settings_view_height"
+        android:text="@string/minus"
+
+        app:layout_constraintBottom_toBottomOf="@+id/first_read_timeout"
+        app:layout_constraintRight_toLeftOf="@+id/first_read_timeout"
+        app:layout_constraintTop_toTopOf="@+id/first_read_timeout"/>
+
+    <Button
+        android:id="@+id/first_read_timeout_button_plus"
+        android:layout_width="@dimen/settings_view_height"
+        android:layout_height="@dimen/settings_view_height"
+        android:text="@string/plus"
+
+        app:layout_constraintBottom_toBottomOf="@+id/first_read_timeout"
+        app:layout_constraintLeft_toRightOf="@+id/first_read_timeout"
+        app:layout_constraintTop_toTopOf="@+id/first_read_timeout"/>
+
+
+    <TextView
+        android:id="@+id/later_read_timeout_text_view"
+        style="@style/AppTheme.TextAppearance.SettingsLabel"
+        android:layout_width="@dimen/settings_tv_width"
+        android:layout_height="@dimen/settings_tv_height"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:layout_marginTop="@dimen/settings_text_marginTop"
+        android:labelFor="@+id/later_read_timeout"
+        android:text="@string/later_read_timeout_text"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/first_read_timeout_text_view"/>
+
+    <EditText
+        android:id="@+id/later_read_timeout"
+        android:layout_width="@dimen/settings_et_width"
+        android:layout_height="@dimen/settings_view_height"
+        android:layout_marginEnd="@dimen/settings_text_margin"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:gravity="end"
+        android:inputType="number"
+        android:imeOptions="actionDone"
+
+        app:layout_constraintBaseline_toBaselineOf="@+id/later_read_timeout_text_view"
+        app:layout_constraintLeft_toRightOf="@+id/later_read_timeout_text_view"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <Button
+        android:id="@+id/later_read_timeout_button_minus"
+        android:layout_width="@dimen/settings_view_height"
+        android:layout_height="@dimen/settings_view_height"
+        android:text="@string/minus"
+
+        app:layout_constraintBottom_toBottomOf="@+id/later_read_timeout"
+        app:layout_constraintRight_toLeftOf="@+id/later_read_timeout"
+        app:layout_constraintTop_toTopOf="@+id/later_read_timeout"/>
+
+    <Button
+        android:id="@+id/later_read_timeout_button_plus"
+        android:layout_width="@dimen/settings_view_height"
+        android:layout_height="@dimen/settings_view_height"
+        android:text="@string/plus"
+
+        app:layout_constraintBottom_toBottomOf="@+id/later_read_timeout"
+        app:layout_constraintLeft_toRightOf="@+id/later_read_timeout"
+        app:layout_constraintTop_toTopOf="@+id/later_read_timeout"/>
+
+    <TextView
+        android:id="@+id/external_server_heading"
+        style="@style/TextAppearance.AppCompat.Medium"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/settings_heading_height"
+        android:text="@string/external_server_heading"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:layout_marginEnd="@dimen/settings_text_margin"
+        android:layout_marginTop="@dimen/settings_text_marginTop"
+
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+
+        app:layout_constraintTop_toBottomOf="@+id/later_read_timeout"/>
+
+
+    <TextView
+        android:id="@+id/external_server_enabled_text_view"
+        style="@style/AppTheme.TextAppearance.SettingsLabel"
+        android:layout_width="@dimen/settings_tv_width"
+        android:layout_height="@dimen/settings_tv_height"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:layout_marginTop="@dimen/settings_heading_first_sub_view_marginTop"
+        android:labelFor="@+id/external_server_enabled"
+        android:text="@string/external_server_enabled_text"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/external_server_heading"/>
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/external_server_enabled"
+        android:layout_width="@dimen/settings_et_width"
+        android:layout_height="@dimen/settings_view_height"
+        android:layout_marginEnd="@dimen/settings_text_margin"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:gravity="start"
+
+        app:layout_constraintBaseline_toBaselineOf="@+id/external_server_enabled_text_view"
+        app:layout_constraintLeft_toRightOf="@+id/external_server_enabled_text_view"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <TextView
+        android:id="@+id/external_server_wifi_address_text_view"
+        style="@style/AppTheme.TextAppearance.SettingsLabel"
+        android:layout_width="@dimen/settings_tv_width"
+        android:layout_height="@dimen/settings_tv_height"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:layout_marginTop="@dimen/settings_text_marginTop"
+        android:labelFor="@+id/external_server_wifi_address"
+        android:text="@string/external_server_wifi_address_text"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/external_server_enabled_text_view"/>
+
+    <TextView
+        android:id="@+id/external_server_wifi_address"
+        android:layout_width="@dimen/ext_server_address_tv_width"
+        android:layout_height="@dimen/settings_view_height"
+        android:layout_marginEnd="@dimen/settings_text_margin"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:gravity="center"
+        android:text="@string/external_server_wifi_address_default_value"
+
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:layout_constraintBaseline_toBaselineOf="@+id/external_server_wifi_address_text_view"
+        app:layout_constraintLeft_toRightOf="@+id/external_server_wifi_address_text_view"
+        app:layout_constraintRight_toRightOf="parent"/>
+
+    <TextView
+        android:id="@+id/external_server_wifi_port_text_view"
+        style="@style/AppTheme.TextAppearance.SettingsLabel"
+        android:layout_width="@dimen/settings_tv_width"
+        android:layout_height="@dimen/settings_tv_height"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:layout_marginTop="@dimen/settings_text_marginTop"
+        android:labelFor="@+id/external_server_wifi_port"
+        android:text="@string/external_server_wifi_port_text"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/external_server_wifi_address_text_view"/>
+
+    <EditText
+        android:id="@+id/external_server_wifi_port"
+        android:layout_width="@dimen/settings_et_width"
+        android:layout_height="@dimen/settings_view_height"
+        android:layout_marginEnd="@dimen/settings_text_margin"
+        android:layout_marginStart="@dimen/settings_text_margin"
+        android:gravity="center"
+        android:inputType="number"
+        android:imeOptions="actionDone"
+
+        app:layout_constraintBaseline_toBaselineOf="@+id/external_server_wifi_port_text_view"
+        app:layout_constraintLeft_toRightOf="@+id/external_server_wifi_port_text_view"
+        app:layout_constraintRight_toRightOf="parent"/>
+</android.support.constraint.ConstraintLayout>

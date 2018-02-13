@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_no_wifi_adddress">Unable to get wifi address</string>
+    <string name="error_unable_to_start_external_server">Unable to start server: %1$s. Please retry</string>
+    <string name="error_unable_to_connect_client">Unable to connect to a client: %1$s Server is stopping, please retry</string>
+    <string name="error_i_o_operation">Exception during I/O operation: %1$s</string>
+</resources>

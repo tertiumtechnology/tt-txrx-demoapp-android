@@ -1,0 +1,32 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.tertiumtechnology.demoapp.DeviceActivity">
+
+    <item
+        android:id="@+id/menu_refresh"
+        android:checkable="false"
+        android:orderInCategory="1"
+        android:title="@string/menu_refresh"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/menu_connect"
+        android:title="@string/menu_connect"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom|withText"/>
+    <item
+        android:id="@+id/menu_connecting"
+        android:title="@string/menu_connecting"
+        android:orderInCategory="3"
+        app:showAsAction="ifRoom|withText"/>
+    <item
+        android:id="@+id/menu_discovering"
+        android:title="@string/menu_discovering"
+        android:orderInCategory="4"
+        app:showAsAction="always|withText"/>
+    <item
+        android:id="@+id/menu_disconnect"
+        android:title="@string/menu_disconnect"
+        android:orderInCategory="5"
+        app:showAsAction="ifRoom|withText"/>
+</menu>

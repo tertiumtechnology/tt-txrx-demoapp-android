@@ -1,0 +1,2 @@
+include ':app', ':txrxlib'
+project(':txrxlib').projectDir = new File('../tt-txrx-lib-android/txrxlib')

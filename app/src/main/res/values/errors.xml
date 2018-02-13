@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_bluetooth_not_supported">Bluetooth not supported.</string>
+
+    <!-- ScanActivity -->
+    <string name="error_ble_not_supported">BLE not supported</string>
+
+    <!-- DeviceActivity -->
+    <string name="log_warning_unable_to_connect">Unable to connect</string>
+    <string name="error_invalid_action">Invalid action</string>
+    <string name="error_no_available_services">No available service found</string>
+    
+    <!-- BleService -->
+    <string name="error_connection_timeout">Connection timeout</string>
+    <string name="error_unable_to_connect">Unable to connect to device</string>
+    <string name="error_unable_to_read">Unable to read</string>
+    <string name="error_unable_to_write">Unable to write</string>
+    <string name="error_read_timeout">Read timeout</string>
+    <string name="error_write_timeout">Write timeout</string>
+</resources>
