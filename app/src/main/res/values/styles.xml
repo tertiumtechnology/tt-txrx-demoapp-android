@@ -17,6 +17,4 @@
         <item name="android:textSize">15dp</item>
     </style>
 
-    <style name="AppTheme.TextAppearance.Medium" parent="TextAppearance.AppCompat.Medium"/>
-
 </resources>

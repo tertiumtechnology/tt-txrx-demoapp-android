@@ -60,11 +60,14 @@ public class BleDeviceListAdapter extends RecyclerView.Adapter<BleDeviceListAdap
     public void addDevice(BluetoothDevice device) {
         if (!bleDevices.contains(device)) {
             bleDevices.add(device);
+            notifyItemInserted(bleDevices.size() - 1);
         }
     }
 
     public void clear() {
+        int size = bleDevices.size();
         bleDevices.clear();
+        notifyItemRangeRemoved(0, size);
     }
 
     @Override

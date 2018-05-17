@@ -1,12 +1,36 @@
 <resources>
     <string name="app_name">DemoApp</string>
+
+    <!-- All Activities -->
+    <!-- menu -->
+    <string name="menu_refresh">Refresh</string>
+    <!-- Preferences -->
     <string name="prefs_name">DemoAppPreferences</string>
 
+    <!-- Settings Activity -->
+    <string name="title_activity_settings">@string/menu_settings</string>
+
+    <string name="connect_timeout_text">Connect Timeout (ms)</string>
+    <string name="write_timeout_text">Write Timeout (ms)</string>
+    <string name="first_read_timeout_text">First Read/Notify Timeout (ms)</string>
+    <string name="later_read_timeout_text">Later Read/Notify Timeout (ms)</string>
+    <string name="plus">+</string>
+    <string name="minus">-</string>
+    <string name="timeouts_heading">Timeouts</string>
+
+    <!-- Scan Activity -->
+    <string name="title_activity_main">Find BLE device</string>
+
+    <!-- menu scan -->
     <string name="menu_scan">Scan</string>
     <string name="menu_stop">Stop</string>
-    <string name="menu_refresh">Refresh</string>
     <string name="menu_settings">Settings</string>
 
+    <!-- BleDeviceLisAdapter -->
+    <string name="unknown_device">Unknown device</string>
+
+    <!-- DeviceActivity -->
+    <!-- menu device -->
     <string name="menu_connect">Connect</string>
     <string name="menu_connecting">Connecting</string>
     <string name="menu_discovering">Discovering</string>
@@ -14,21 +38,4 @@
 
     <string name="write_button_text">Write</string>
     <string name="read_button_text">Read</string>
-
-    <string name="title_activity_main">Find BLE device</string>
-    <string name="title_activity_settings">@string/menu_settings</string>
-
-    <string name="title_timeouts_dialog">Timeouts</string>
-
-    <string name="unknown_device">Unknown device</string>
-
-    <string name="scan_timeout_text">Scan Timeout (ms)</string>
-    <string name="connect_timeout_text">Connect Timeout (ms)</string>
-    <string name="write_timeout_text">Write Timeout (ms)</string>
-    <string name="first_read_timeout_text">First Read/Notify Timeout (ms)</string>
-    <string name="later_read_timeout_text">Later Read/Notify Timeout (ms)</string>
-
-    <string name="plus">+</string>
-    <string name="minus">-</string>
-    <string name="timeouts_heading">Timeouts</string>
 </resources>

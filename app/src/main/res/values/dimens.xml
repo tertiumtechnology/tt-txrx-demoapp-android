@@ -1,7 +1,8 @@
 <resources>
-    <!-- Default screen margins, per the Android Design guidelines. -->
+    <!-- All Activities -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
 
+    <!-- Settings Activity -->
     <dimen name="settings_heading_height">32dp</dimen>
     <dimen name="settings_heading_first_sub_view_marginTop">24dp</dimen>
     <dimen name="settings_view_height">40dp</dimen>

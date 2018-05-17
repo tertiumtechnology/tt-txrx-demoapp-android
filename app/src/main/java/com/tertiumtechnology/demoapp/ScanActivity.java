@@ -21,12 +21,22 @@ import android.widget.Toast;
 
 import com.tertiumtechnology.demoapp.util.BleDeviceListAdapter;
 import com.tertiumtechnology.txrxlib.scan.TxRxScanCallback;
+import com.tertiumtechnology.txrxlib.scan.TxRxScanResult;
 import com.tertiumtechnology.txrxlib.scan.TxRxScanner;
 import com.tertiumtechnology.txrxlib.util.BleChecker;
+
+import java.util.Arrays;
 
 public class ScanActivity extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_COARSE_LOCATION = 2;
+
+    private static String[] filteredServiceUuids = new String[]{
+            // TxRxTertium
+            "3CC33CDC-CB91-4947-BD12-80D2F0535A30",
+            // TxRxAckme
+            "175f8f23-a570-49bd-9627-815a6a27de2a"
+    };
 
     private BleDeviceListAdapter bleDeviceListAdapter;
     private TxRxScanner txRxScanner;
@@ -74,7 +84,12 @@ public class ScanActivity extends AppCompatActivity {
                 }
 
                 if (permissionGranted) {
-                    txRxScanner.startScan();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        txRxScanner.startScan(Arrays.asList(filteredServiceUuids));
+                    }
+                    else {
+                        txRxScanner.startScan();
+                    }
                     supportInvalidateOptionsMenu();
                 }
                 break;
@@ -100,18 +115,39 @@ public class ScanActivity extends AppCompatActivity {
         if (requestCode == REQUEST_COARSE_LOCATION) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                txRxScanner.startScan();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    txRxScanner.startScan(Arrays.asList(filteredServiceUuids));
+                }
+                else {
+                    txRxScanner.startScan();
+                }
                 supportInvalidateOptionsMenu();
             }
         }
+    }
+
+    private void checkForBluetoothEnabled() {
+        if (!BleChecker.isBluetoothEnabled(getApplicationContext())) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
+            finish();
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.device_toolbar);
-        toolbar.canShowOverflowMenu();
+        Toolbar toolbar = findViewById(R.id.device_toolbar);
+
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(R.string.title_activity_main);
 
@@ -128,22 +164,21 @@ public class ScanActivity extends AppCompatActivity {
 
         TxRxScanCallback txRxScanCallback = new TxRxScanCallback() {
             @Override
-            public void onDeviceFound(final BluetoothDevice device) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        bleDeviceListAdapter.addDevice(device);
-                        bleDeviceListAdapter.notifyDataSetChanged();
-                    }
-                });
-            }
-
-            @Override
             public void afterStopScan() {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         supportInvalidateOptionsMenu();
+                    }
+                });
+            }
+
+            @Override
+            public void onDeviceFound(final TxRxScanResult scanResult) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        bleDeviceListAdapter.addDevice(scanResult.getBluetoothDevice());
                     }
                 });
             }
@@ -183,13 +218,6 @@ public class ScanActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-        checkForBluetoothEnabled();
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
         if (txRxScanner.isScanning()) {
@@ -199,18 +227,9 @@ public class ScanActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
-            finish();
-            return;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
+    protected void onResume() {
+        super.onResume();
 
-    private void checkForBluetoothEnabled() {
-        if (!BleChecker.isBluetoothEnabled(getApplicationContext())) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
+        checkForBluetoothEnabled();
     }
 }
