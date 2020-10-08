@@ -28,6 +28,8 @@ public class BleService extends Service {
     public static final String DEVICE_TX_RX_SERVICE_NOT_FOUND = "DEVICE_TX_RX_SERVICE_NOT_FOUND";
     public static final String DEVICE_WRITE_DATA = "DEVICE_WRITE_DATA";
     public static final String DEVICE_WRITE_OPERATION_FAILED = "DEVICE_WRITE_OPERATION_FAILED";
+    public static final String DEVICE_SETMODE = "DEVICE_SETMODE";
+    public static final String DEVICE_SETMODE_OPERATION_FAILED = "DEVICE_SETMODE_OPERATION_FAILED";
     public static final String INTENT_EXTRA_DATA_VALUE = "INTENT_EXTRA_DATA_VALUE";
 
     private final IBinder localBinder = new LocalBinder();
@@ -83,6 +85,26 @@ public class BleService extends Service {
         }
 
         @Override
+        public void onSetMode(int mode) {
+            Intent writeIntent = createIntentWithExtraValue(DEVICE_SETMODE, mode);
+            sendMsg(writeIntent);
+        }
+
+        @Override
+        public void onSetModeError(int errorCode) {
+            Intent failedIntent = createIntentWithExtraValue(DEVICE_SETMODE_OPERATION_FAILED, getString(R.string
+                    .error_unable_to_setmode));
+            sendMsg(failedIntent);
+        }
+
+        @Override
+        public void onSetModeTimeout() {
+            Intent failedIntent = createIntentWithExtraValue(DEVICE_SETMODE_OPERATION_FAILED, getString(R.string
+                    .error_setmode_timeout));
+            sendMsg(failedIntent);
+        }
+
+        @Override
         public void onTxRxServiceDiscovered() {
             sendMsg(new Intent(DEVICE_TX_RX_SERVICE_FOUND));
         }
@@ -113,6 +135,12 @@ public class BleService extends Service {
         }
 
         private Intent createIntentWithExtraValue(String gattOperation, String value) {
+            Intent intent = new Intent(gattOperation);
+            intent.putExtra(INTENT_EXTRA_DATA_VALUE, value);
+            return intent;
+        }
+
+        private Intent createIntentWithExtraValue(String gattOperation, int value) {
             Intent intent = new Intent(gattOperation);
             intent.putExtra(INTENT_EXTRA_DATA_VALUE, value);
             return intent;
@@ -166,7 +194,15 @@ public class BleService extends Service {
         return txRxDeviceManager.requestReadData();
     }
 
+    public boolean setMode(int mode) {
+        return txRxDeviceManager.requestSetMode(mode);
+    }
+
     public boolean writeData(String data) {
         return txRxDeviceManager.requestWriteData(data);
+    }
+
+    public boolean isTxRxAckme() {
+        return txRxDeviceManager.isTxRxAckme();
     }
 }

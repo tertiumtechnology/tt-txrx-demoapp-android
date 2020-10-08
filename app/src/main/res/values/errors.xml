@@ -16,6 +16,8 @@
     <string name="error_unable_to_connect">Unable to connect to device</string>
     <string name="error_unable_to_read">Unable to read</string>
     <string name="error_unable_to_write">Unable to write</string>
+    <string name="error_unable_to_setmode">Unable to set mode</string>
     <string name="error_read_timeout">Read timeout</string>
     <string name="error_write_timeout">Write timeout</string>
+    <string name="error_setmode_timeout">SetMode timeout</string>
 </resources>

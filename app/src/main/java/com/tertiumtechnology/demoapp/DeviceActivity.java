@@ -53,6 +53,12 @@ public class DeviceActivity extends AppCompatActivity {
                 supportInvalidateOptionsMenu();
             }
             else if (BleService.DEVICE_TX_RX_SERVICE_FOUND.equals(intent.getAction())) {
+                currentMode = STREAM_MODE;
+
+                if (bleService.isTxRxAckme()) {
+                    deviceAllowSetMode = true;
+                }
+
                 connectionState = ConnectionState.CONNECTED;
                 supportInvalidateOptionsMenu();
 
@@ -60,6 +66,7 @@ public class DeviceActivity extends AppCompatActivity {
             }
             else if (BleService.DEVICE_TX_RX_SERVICE_NOT_FOUND.equals(intent.getAction())) {
                 disableWriteButton();
+                deviceAllowSetMode = false;
 
                 connectionState = ConnectionState.CONNECTED;
                 supportInvalidateOptionsMenu();
@@ -76,6 +83,15 @@ public class DeviceActivity extends AppCompatActivity {
                 if (!dataRead.equals("")) {
                     composeAndAppendMsg(dataRead, getMsgColor(R.color.colorReadText), false);
                 }
+            }
+            else if (BleService.DEVICE_SETMODE.equals(intent.getAction())) {
+                int setModeValue = intent.getIntExtra(BleService.INTENT_EXTRA_DATA_VALUE, -1);
+
+                currentMode = setModeValue;
+                supportInvalidateOptionsMenu();
+
+//                composeAndAppendMsg(getString(R.string.set_mode_response, getModeString(setModeValue)),
+//                        getMsgColor(R.color.colorReadText), true);
             }
             else if (BleService.DEVICE_CONNECTION_OPERATION_FAILED.equals(intent.getAction())) {
                 disableWriteButton();
@@ -100,6 +116,12 @@ public class DeviceActivity extends AppCompatActivity {
 
                 hideSoftKeyboard();
             }
+            else if (BleService.DEVICE_SETMODE_OPERATION_FAILED.equals(intent.getAction())) {
+                composeAndAppendMsg(intent.getStringExtra(BleService.INTENT_EXTRA_DATA_VALUE), getMsgColor(R.color
+                        .colorErrorText), true);
+
+                hideSoftKeyboard();
+            }
             else {
                 throw new UnsupportedOperationException(getString(R.string.error_invalid_action));
             }
@@ -114,6 +136,9 @@ public class DeviceActivity extends AppCompatActivity {
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     private static final int REQUEST_ENABLE_BT = 1;
 
+    private static final int STREAM_MODE = 1;
+    private static final int CMD_MODE = 3;
+
     private static final String TAG = DeviceActivity.class.getSimpleName();
 
     private static IntentFilter getBleIntentFilter() {
@@ -127,6 +152,10 @@ public class DeviceActivity extends AppCompatActivity {
         intentFilter.addAction(BleService.DEVICE_CONNECTION_OPERATION_FAILED);
         intentFilter.addAction(BleService.DEVICE_WRITE_OPERATION_FAILED);
         intentFilter.addAction(BleService.DEVICE_READ_OPERATION_FAILED);
+        intentFilter.addAction(BleService.DEVICE_SETMODE);
+        intentFilter.addAction(BleService.DEVICE_SETMODE_OPERATION_FAILED);
+        intentFilter.addAction(BleService.INTENT_EXTRA_DATA_VALUE);
+
         return intentFilter;
     }
 
@@ -143,6 +172,23 @@ public class DeviceActivity extends AppCompatActivity {
     private AppCompatButton writeButton;
     private AppCompatEditText writeEditText;
     private ProgressBar writeProgressBar;
+
+    private int currentMode;
+    private boolean deviceAllowSetMode;
+
+    public void doSetModeRequest() {
+        if (bleService != null) {
+            int mode = currentMode == STREAM_MODE ? CMD_MODE : STREAM_MODE;
+
+//            composeAndAppendMsg(getString(R.string.set_mode_request, getModeString(mode)),
+//                    getMsgColor(R.color.colorWriteText), true);
+
+            if (!bleService.setMode(mode)) {
+                composeAndAppendMsg(getString(R.string.error_unable_to_setmode), getMsgColor(R.color.colorErrorText),
+                        true);
+            }
+        }
+    }
 
     public void doWriteRequest(String data) {
         if (bleService != null && !data.equals("")) {
@@ -168,6 +214,9 @@ public class DeviceActivity extends AppCompatActivity {
         menu.findItem(R.id.menu_disconnect).setVisible(false);
         menu.findItem(R.id.menu_refresh).setVisible(false);
 
+        menu.findItem(R.id.menu_mode_stream).setVisible(false);
+        menu.findItem(R.id.menu_mode_cmd).setVisible(false);
+
         return true;
     }
 
@@ -183,6 +232,10 @@ public class DeviceActivity extends AppCompatActivity {
             case R.id.menu_disconnect:
                 bleService.disconnect();
                 return true;
+            case R.id.menu_mode_stream:
+            case R.id.menu_mode_cmd:
+                doSetModeRequest();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -196,6 +249,9 @@ public class DeviceActivity extends AppCompatActivity {
             menu.findItem(R.id.menu_disconnect).setVisible(false);
             menu.findItem(R.id.menu_refresh).setActionView(null);
             menu.findItem(R.id.menu_refresh).setVisible(false);
+
+            menu.findItem(R.id.menu_mode_stream).setVisible(false);
+            menu.findItem(R.id.menu_mode_cmd).setVisible(false);
         }
         else if (connectionState == ConnectionState.CONNECTING) {
             menu.findItem(R.id.menu_connect).setVisible(false);
@@ -206,6 +262,9 @@ public class DeviceActivity extends AppCompatActivity {
             menu.findItem(R.id.menu_refresh).setActionView(
                     R.layout.actionbar_indeterminate_progress);
             menu.findItem(R.id.menu_refresh).setVisible(true);
+
+            menu.findItem(R.id.menu_mode_stream).setVisible(false);
+            menu.findItem(R.id.menu_mode_cmd).setVisible(false);
         }
         else if (connectionState == ConnectionState.DISCOVERING) {
             menu.findItem(R.id.menu_connect).setVisible(false);
@@ -216,6 +275,9 @@ public class DeviceActivity extends AppCompatActivity {
             menu.findItem(R.id.menu_refresh).setActionView(
                     R.layout.actionbar_indeterminate_progress);
             menu.findItem(R.id.menu_refresh).setVisible(true);
+
+            menu.findItem(R.id.menu_mode_stream).setVisible(false);
+            menu.findItem(R.id.menu_mode_cmd).setVisible(false);
         }
         else if (connectionState == ConnectionState.CONNECTED) {
             menu.findItem(R.id.menu_connect).setVisible(false);
@@ -225,6 +287,21 @@ public class DeviceActivity extends AppCompatActivity {
 
             menu.findItem(R.id.menu_refresh).setActionView(null);
             menu.findItem(R.id.menu_refresh).setVisible(false);
+
+            if (deviceAllowSetMode) {
+                if (currentMode == STREAM_MODE) {
+                    menu.findItem(R.id.menu_mode_stream).setVisible(true);
+                    menu.findItem(R.id.menu_mode_cmd).setVisible(false);
+                }
+                else {
+                    menu.findItem(R.id.menu_mode_stream).setVisible(false);
+                    menu.findItem(R.id.menu_mode_cmd).setVisible(true);
+                }
+            }
+            else {
+                menu.findItem(R.id.menu_mode_stream).setVisible(false);
+                menu.findItem(R.id.menu_mode_cmd).setVisible(false);
+            }
         }
 
         if (menu.findItem(R.id.menu_disconnect).isVisible()) {
@@ -277,6 +354,11 @@ public class DeviceActivity extends AppCompatActivity {
         disallowDisconnect();
         writeButton.setEnabled(false);
         writeProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    private String getModeString(int mode) {
+        return mode == STREAM_MODE ? getString(R.string.menu_stream_mode) :
+                getString(R.string.menu_cmd_mode);
     }
 
     private int getMsgColor(int colorResourceId) {
@@ -342,13 +424,15 @@ public class DeviceActivity extends AppCompatActivity {
             }
         });
 
-
         // UI read
         readScrollView = (ScrollView) findViewById(R.id.read_scroll_view);
         readTextView = (AppCompatTextView) findViewById(R.id.read_text_view);
 
         disableWriteButton();
         allowDisconnect();
+
+        currentMode = STREAM_MODE;
+        deviceAllowSetMode = false;
 
         // init service
         final BluetoothAdapter bluetoothAdapter = BleChecker.getBtAdapter(getApplicationContext());
@@ -406,7 +490,6 @@ public class DeviceActivity extends AppCompatActivity {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
-
 
         if (bleService != null && connectionState == ConnectionState.CONNECTED) {
             if (!bleService.isDeviceConnected(deviceAddress)) {

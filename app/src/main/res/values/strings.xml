@@ -31,6 +31,9 @@
 
     <!-- DeviceActivity -->
     <!-- menu device -->
+    <string name="menu_stream_mode">Stream</string>
+    <string name="menu_cmd_mode">Cmd</string>
+
     <string name="menu_connect">Connect</string>
     <string name="menu_connecting">Connecting</string>
     <string name="menu_discovering">Discovering</string>
@@ -38,4 +41,7 @@
 
     <string name="write_button_text">Write</string>
     <string name="read_button_text">Read</string>
+
+    <string name="set_mode_request">Request change mode to: %1$s</string>
+    <string name="set_mode_response">Current mode: %1$s</string>
 </resources>

@@ -21,7 +21,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-
 public class ExternalServerThread extends Thread {
     public class NetworkBleReceiver extends BroadcastReceiver {
         @Override
@@ -132,7 +131,6 @@ public class ExternalServerThread extends Thread {
 
                 outputWriter = new PrintWriter(socket.getOutputStream(), true);
 
-
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
                         String input;
@@ -150,7 +148,6 @@ public class ExternalServerThread extends Thread {
 
                         adviceOnUi(getResourceMsg("client_connection_lost", R.string.client_connection_lost));
                         break;
-
                     } catch (SocketTimeoutException e) {
 
                     }
@@ -218,5 +215,4 @@ public class ExternalServerThread extends Thread {
         }
         return defaultMsg;
     }
-
 }

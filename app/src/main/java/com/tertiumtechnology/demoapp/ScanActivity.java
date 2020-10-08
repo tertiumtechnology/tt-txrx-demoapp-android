@@ -33,9 +33,11 @@ public class ScanActivity extends AppCompatActivity {
 
     private static String[] filteredServiceUuids = new String[]{
             // TxRxTertium
-            "3CC33CDC-CB91-4947-BD12-80D2F0535A30",
+            "f3770001-1164-49bc-8f22-0ac34292c217",
             // TxRxAckme
-            "175f8f23-a570-49bd-9627-815a6a27de2a"
+            "175f8f23-a570-49bd-9627-815a6a27de2a",
+            // Zhaga
+            "3cc30001-cb91-4947-bd12-80d2f0535a30"
     };
 
     private BleDeviceListAdapter bleDeviceListAdapter;
@@ -75,7 +77,7 @@ public class ScanActivity extends AppCompatActivity {
                         ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission
                                 .ACCESS_COARSE_LOCATION)
                                 != PackageManager.PERMISSION_GRANTED
-                        ) {
+                ) {
                     ActivityCompat.requestPermissions(this,
                             new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                             REQUEST_COARSE_LOCATION);

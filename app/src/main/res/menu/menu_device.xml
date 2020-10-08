@@ -4,15 +4,27 @@
       tools:context="com.tertiumtechnology.demoapp.DeviceActivity">
 
     <item
-        android:id="@+id/menu_refresh"
+        android:id="@+id/menu_mode_stream"
         android:checkable="false"
         android:orderInCategory="1"
+        android:title="@string/menu_stream_mode"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/menu_mode_cmd"
+        android:checkable="false"
+        android:orderInCategory="2"
+        android:title="@string/menu_cmd_mode"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/menu_refresh"
+        android:checkable="false"
+        android:orderInCategory="10"
         android:title="@string/menu_refresh"
         app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/menu_connect"
         android:title="@string/menu_connect"
-        android:orderInCategory="2"
+        android:orderInCategory="20"
         app:showAsAction="ifRoom|withText"/>
     <item
         android:id="@+id/menu_connecting"
