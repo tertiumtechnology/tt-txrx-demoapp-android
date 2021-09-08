@@ -16,13 +16,25 @@ public class Preferences {
 
     private static final String PREF_EXTERNAL_SERVER_ENABLED = "com.tertiumtechnology.demoapp" +
             ".PREF_EXTERNAL_SERVER_ENABLED";
-    private static final String PREF_EXTERNAL_SERVER_PORT = "com.tertiumtechnology.demoapp.PREF_EXTERNAL_SERVER_PORT";
+    private static final String PREF_EXTERNAL_READ_NOTIFY_SERVER_PORT = "com.tertiumtechnology.demoapp" +
+            ".PREF_EXTERNAL_READ_NOTIFY_SERVER_PORT";
+    private static final String PREF_EXTERNAL_EVENT_SERVER_PORT = "com.tertiumtechnology.demoapp" +
+            ".PREF_EXTERNAL_EVENT_SERVER_PORT";
 
-    public static void saveExternalServerEnabled(Context context, boolean isEnabled) {
+    public static int getExternalEventServerPort(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.prefs_name), 0);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(Preferences.PREF_EXTERNAL_SERVER_ENABLED, isEnabled);
-        editor.apply();
+        int port = sharedPreferences.getInt(Preferences.PREF_EXTERNAL_EVENT_SERVER_PORT, ExternalServerThread
+                .PORT_DEFAULT_VALUE + 1);
+
+        return port;
+    }
+
+    public static int getExternalReadNotifyServerPort(Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.prefs_name), 0);
+        int port = sharedPreferences.getInt(Preferences.PREF_EXTERNAL_READ_NOTIFY_SERVER_PORT, ExternalServerThread
+                .PORT_DEFAULT_VALUE);
+
+        return port;
     }
 
     public static boolean getExternalServerEnabled(Context context) {
@@ -32,19 +44,25 @@ public class Preferences {
         return isEnabled;
     }
 
-    public static void saveExternalServerPort(Context context, int port) {
+    public static void saveExternalEventServerPort(Context context, int port) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.prefs_name), 0);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt(Preferences.PREF_EXTERNAL_SERVER_PORT, port);
+        editor.putInt(Preferences.PREF_EXTERNAL_EVENT_SERVER_PORT, port);
         editor.apply();
     }
 
-    public static int getExternalServerPort(Context context) {
+    public static void saveExternalReadNotifyServerPort(Context context, int port) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.prefs_name), 0);
-        int port = sharedPreferences.getInt(Preferences.PREF_EXTERNAL_SERVER_PORT, ExternalServerThread
-                .PORT_DEFAULT_VALUE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(Preferences.PREF_EXTERNAL_READ_NOTIFY_SERVER_PORT, port);
+        editor.apply();
+    }
 
-        return port;
+    public static void saveExternalServerEnabled(Context context, boolean isEnabled) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.prefs_name), 0);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(Preferences.PREF_EXTERNAL_SERVER_ENABLED, isEnabled);
+        editor.apply();
     }
 
     public static InetAddress wifiIpAddress(Context context) {

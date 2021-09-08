@@ -4,13 +4,13 @@
               android:layout_height="wrap_content"
               android:orientation="vertical">
 
-    <android.support.v7.widget.AppCompatTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/device_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="24dp"/>
 
-    <android.support.v7.widget.AppCompatTextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/device_address"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

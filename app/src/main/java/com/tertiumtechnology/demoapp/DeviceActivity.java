@@ -11,12 +11,6 @@ import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton;
-import android.support.v7.widget.AppCompatEditText;
-import android.support.v7.widget.AppCompatTextView;
-import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -30,8 +24,23 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
+import com.tertiumtechnology.demoapp.ExternalServerThread.DeviceActivityCommand;
+import com.tertiumtechnology.demoapp.ExternalServerThread.NetworkBleReceiver;
 import com.tertiumtechnology.demoapp.util.Preferences;
 import com.tertiumtechnology.txrxlib.util.BleChecker;
+
+import java.net.InetAddress;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.appcompat.widget.AppCompatEditText;
+import androidx.appcompat.widget.AppCompatTextView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 public class DeviceActivity extends AppCompatActivity {
 
@@ -82,6 +91,13 @@ public class DeviceActivity extends AppCompatActivity {
 
                 if (!dataRead.equals("")) {
                     composeAndAppendMsg(dataRead, getMsgColor(R.color.colorReadText), false);
+                }
+            }
+            else if (BleService.DEVICE_EVENT_DATA.equals(intent.getAction())) {
+                String eventData = intent.getStringExtra(BleService.INTENT_EXTRA_DATA_VALUE);
+
+                if (!eventData.equals("")) {
+                    composeAndAppendMsg(eventData, getMsgColor(R.color.colorEventText), false);
                 }
             }
             else if (BleService.DEVICE_SETMODE.equals(intent.getAction())) {
@@ -154,6 +170,7 @@ public class DeviceActivity extends AppCompatActivity {
         intentFilter.addAction(BleService.DEVICE_READ_OPERATION_FAILED);
         intentFilter.addAction(BleService.DEVICE_SETMODE);
         intentFilter.addAction(BleService.DEVICE_SETMODE_OPERATION_FAILED);
+        intentFilter.addAction(BleService.DEVICE_EVENT_DATA);
         intentFilter.addAction(BleService.INTENT_EXTRA_DATA_VALUE);
 
         return intentFilter;
@@ -165,16 +182,25 @@ public class DeviceActivity extends AppCompatActivity {
     private ConnectionState connectionState;
     private String deviceAddress;
     private boolean enableDisconnect;
-    private ExternalServerThread.NetworkBleReceiver networkBleReceiver;
     private ScrollView readScrollView;
     private AppCompatTextView readTextView;
-    private ExternalServerThread serverSocketThread;
     private AppCompatButton writeButton;
     private AppCompatEditText writeEditText;
     private ProgressBar writeProgressBar;
 
     private int currentMode;
     private boolean deviceAllowSetMode;
+
+    private ExternalServerThread readNotifySocketThread;
+    private NetworkBleReceiver readNotifyNetworkBleReceiver;
+
+    private ExternalServerThread eventSocketThread;
+    private NetworkBleReceiver eventNetworkBleReceiver;
+
+    private AppCompatButton repeatWriteButton;
+    private String lastCommand;
+
+    private ActivityResultLauncher<Intent> activityResultLauncher;
 
     public void doSetModeRequest() {
         if (bleService != null) {
@@ -191,7 +217,7 @@ public class DeviceActivity extends AppCompatActivity {
     }
 
     public void doWriteRequest(String data) {
-        if (bleService != null && !data.equals("")) {
+        if (bleService != null && data != null) {
             composeAndAppendMsg(data, getMsgColor(R.color.colorWriteText), true);
 
             disallowWriteRequests();
@@ -202,6 +228,8 @@ public class DeviceActivity extends AppCompatActivity {
                 composeAndAppendMsg(getString(R.string.error_unable_to_write), getMsgColor(R.color.colorErrorText),
                         true);
             }
+
+            lastCommand = data;
         }
     }
 
@@ -366,6 +394,7 @@ public class DeviceActivity extends AppCompatActivity {
             return getColor(colorResourceId);
         }
         else {
+            //noinspection deprecation
             return getResources().getColor(colorResourceId);
         }
     }
@@ -385,13 +414,35 @@ public class DeviceActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
-            finish();
-            return;
+    private ExternalServerThread startExternalServer(InetAddress address, int port,
+                                                     ExternalServerThread socketThread,
+                                                     String eventServerName, IntentFilter eventIntentFilter,
+                                                     DeviceActivityCommand command) {
+
+        if (socketThread != null && socketThread.getState() != Thread.State.TERMINATED) {
+            try {
+                socketThread.join();
+            } catch (InterruptedException e) {
+
+            }
         }
-        super.onActivityResult(requestCode, resultCode, data);
+
+        socketThread = new ExternalServerThread(eventServerName, this, address, port, command);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(socketThread.getNetworkBleReceiver(),
+                eventIntentFilter);
+        socketThread.start();
+
+        return socketThread;
+    }
+
+    private void stopExternalServer(ExternalServerThread socketThread,
+                                    NetworkBleReceiver networkBleReceiver) {
+        if (socketThread != null) {
+            socketThread.interrupt();
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(networkBleReceiver);
+            networkBleReceiver = null;
+        }
     }
 
     @Override
@@ -413,6 +464,7 @@ public class DeviceActivity extends AppCompatActivity {
         writeEditText = (AppCompatEditText) findViewById(R.id.write_edit_text);
         writeProgressBar = (ProgressBar) findViewById(R.id.write_progress_bar);
         writeButton = (AppCompatButton) findViewById(R.id.write_button);
+        repeatWriteButton = (AppCompatButton) findViewById(R.id.repeat_write_button);
 
         writeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -421,6 +473,15 @@ public class DeviceActivity extends AppCompatActivity {
 
                 writeEditText.getText().clear();
                 doWriteRequest(editTextValue);
+            }
+        });
+
+        repeatWriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (lastCommand != null) {
+                    doWriteRequest(lastCommand);
+                }
             }
         });
 
@@ -440,6 +501,16 @@ public class DeviceActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
             finish();
         }
+
+        activityResultLauncher = registerForActivityResult(new StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode() == Activity.RESULT_CANCELED) {
+                            finish();
+                        }
+                    }
+                });
 
         Intent bleServiceIntent = new Intent(this, BleService.class);
 
@@ -479,7 +550,7 @@ public class DeviceActivity extends AppCompatActivity {
         unbindService(bleServiceConnection);
         bleService = null;
 
-        serverSocketThread = null;
+        readNotifySocketThread = null;
     }
 
     @Override
@@ -488,7 +559,8 @@ public class DeviceActivity extends AppCompatActivity {
 
         if (!BleChecker.isBluetoothEnabled(getApplicationContext())) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+
+            activityResultLauncher.launch(enableBtIntent);
         }
 
         if (bleService != null && connectionState == ConnectionState.CONNECTED) {
@@ -509,30 +581,45 @@ public class DeviceActivity extends AppCompatActivity {
         super.onStart();
 
         if (Preferences.getExternalServerEnabled(getApplicationContext())) {
-            if (serverSocketThread != null && serverSocketThread.getState() != Thread.State.TERMINATED) {
-                try {
-                    serverSocketThread.join();
-                } catch (InterruptedException e) {
+            InetAddress address = Preferences.wifiIpAddress(getApplicationContext());
 
-                }
-            }
+            // readNotify
+            int readNotifyServerPort = Preferences.getExternalReadNotifyServerPort(getApplicationContext());
+            IntentFilter readIntentFilter = new IntentFilter();
+            readIntentFilter.addAction(BleService.DEVICE_READ_DATA);
 
-            serverSocketThread = new ExternalServerThread(this);
-            networkBleReceiver = serverSocketThread.getNetworkBleReceiver();
+            readNotifySocketThread = startExternalServer(address, readNotifyServerPort, readNotifySocketThread,
+                    getString(R.string.external_server_type_read_notify),
+                    readIntentFilter, new DeviceActivityCommand() {
+                        @Override
+                        public void excecute(DeviceActivity activity, String inputData) {
+                            activity.doWriteRequest(inputData);
+                        }
+                    });
 
-            LocalBroadcastManager.getInstance(this).registerReceiver(networkBleReceiver, getBleIntentFilter());
-            serverSocketThread.start();
+            readNotifyNetworkBleReceiver = readNotifySocketThread.getNetworkBleReceiver();
+
+            // event
+            int eventServerPort = Preferences.getExternalEventServerPort(getApplicationContext());
+            IntentFilter eventIntentFilter = new IntentFilter();
+            eventIntentFilter.addAction(BleService.DEVICE_EVENT_DATA);
+
+            eventSocketThread = startExternalServer(address, eventServerPort, eventSocketThread,
+                    getString(R.string.external_server_type_event),
+                    eventIntentFilter, null);
+
+            eventNetworkBleReceiver = eventSocketThread.getNetworkBleReceiver();
         }
     }
 
     @Override
     protected void onStop() {
         if (Preferences.getExternalServerEnabled(getApplicationContext())) {
-            if (serverSocketThread != null) {
-                serverSocketThread.interrupt();
-                LocalBroadcastManager.getInstance(this).unregisterReceiver(networkBleReceiver);
-                networkBleReceiver = null;
-            }
+            // readNotify
+            stopExternalServer(readNotifySocketThread, readNotifyNetworkBleReceiver);
+
+            // event
+            stopExternalServer(eventSocketThread, eventNetworkBleReceiver);
         }
 
         super.onStop();

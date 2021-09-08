@@ -1,8 +1,6 @@
 package com.tertiumtechnology.demoapp.util;
 
 import android.bluetooth.BluetoothDevice;
-import android.support.v7.widget.AppCompatTextView;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,13 +9,14 @@ import com.tertiumtechnology.demoapp.R;
 
 import java.util.ArrayList;
 
+import androidx.appcompat.widget.AppCompatTextView;
+import androidx.recyclerview.widget.RecyclerView;
+
 public class BleDeviceListAdapter extends RecyclerView.Adapter<BleDeviceListAdapter.ViewHolder> {
 
     public interface OnDeviceClickListener {
         void onDeviceClick(BluetoothDevice device);
     }
-
-    private OnDeviceClickListener listener;
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -46,10 +45,10 @@ public class BleDeviceListAdapter extends RecyclerView.Adapter<BleDeviceListAdap
                     listener.onDeviceClick(device);
                 }
             });
-
         }
     }
 
+    private OnDeviceClickListener listener;
     private ArrayList<BluetoothDevice> bleDevices;
 
     public BleDeviceListAdapter(OnDeviceClickListener listener) {

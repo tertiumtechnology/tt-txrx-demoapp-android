@@ -2,15 +2,18 @@
     <!-- ExternalServerThread -->
     <string name="connected">Connected</string>
     <string name="disconnected">Disconnected</string>
-    <string name="external_server_started">Server started on: %1$s</string>
-    <string name="client_connected">Client connected</string>
-    <string name="client_connection_lost">Client connection lost</string>
-    <string name="external_server_stop">Server stop</string>
+    <string name="external_server_started">%1$s started on: %2$s</string>
+    <string name="client_connected">Client connected to %1$s</string>
+    <string name="client_connection_lost">Client connection lost for %1$s</string>
+    <string name="external_server_stop">%1$s stop</string>
 
     <!-- Settings Activity -->
     <string name="external_server_heading">External Server</string>
     <string name="external_server_enabled_text">Enable Server</string>
     <string name="external_server_wifi_address_text">Wifi Address</string>
     <string name="external_server_wifi_address_default_value">none</string>
-    <string name="external_server_wifi_port_text">Port</string>
+    <string name="external_server_wifi_read_notify_port_text">ReadNotify Server Port</string>
+    <string name="external_server_wifi_event_port_text">Event Server Port</string>
+    <string name="external_server_type_read_notify">ReadNotify Server</string>
+    <string name="external_server_type_event">Event Server</string>
 </resources>

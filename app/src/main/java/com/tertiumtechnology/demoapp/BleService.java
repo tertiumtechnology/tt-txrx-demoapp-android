@@ -5,12 +5,14 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.tertiumtechnology.txrxlib.rw.TxRxDeviceCallback;
 import com.tertiumtechnology.txrxlib.rw.TxRxDeviceManager;
 import com.tertiumtechnology.txrxlib.rw.TxRxTimeouts;
+import com.tertiumtechnology.txrxlib.rw.TxRxTimestamps;
 import com.tertiumtechnology.txrxlib.util.TxRxPreferences;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 public class BleService extends Service {
     class LocalBinder extends Binder {
@@ -30,6 +32,7 @@ public class BleService extends Service {
     public static final String DEVICE_WRITE_OPERATION_FAILED = "DEVICE_WRITE_OPERATION_FAILED";
     public static final String DEVICE_SETMODE = "DEVICE_SETMODE";
     public static final String DEVICE_SETMODE_OPERATION_FAILED = "DEVICE_SETMODE_OPERATION_FAILED";
+    public static final String DEVICE_EVENT_DATA = "DEVICE_EVENT_DATA";
     public static final String INTENT_EXTRA_DATA_VALUE = "INTENT_EXTRA_DATA_VALUE";
 
     private final IBinder localBinder = new LocalBinder();
@@ -59,6 +62,12 @@ public class BleService extends Service {
         }
 
         @Override
+        public void onEventData(String data) {
+            Intent eventIntent = createIntentWithExtraValue(DEVICE_EVENT_DATA, data);
+            sendMsg(eventIntent);
+        }
+
+        @Override
         public void onNotifyData(String data) {
             Intent readIntent = createIntentWithExtraValue(DEVICE_READ_DATA, data);
             sendMsg(readIntent);
@@ -82,6 +91,11 @@ public class BleService extends Service {
             Intent failedIntent = createIntentWithExtraValue(DEVICE_READ_OPERATION_FAILED, getString(R.string
                     .error_read_timeout));
             sendMsg(failedIntent);
+        }
+
+        @Override
+        public void onReceiveTxRxTimestampsAfterNotifyData(TxRxTimestamps txRxTimestamps) {
+
         }
 
         @Override
@@ -179,6 +193,10 @@ public class BleService extends Service {
         return txRxDeviceManager.isConnected(deviceAddress, getApplicationContext());
     }
 
+    public boolean isTxRxAckme() {
+        return txRxDeviceManager.isTxRxAckme();
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return localBinder;
@@ -200,9 +218,5 @@ public class BleService extends Service {
 
     public boolean writeData(String data) {
         return txRxDeviceManager.requestWriteData(data);
-    }
-
-    public boolean isTxRxAckme() {
-        return txRxDeviceManager.isTxRxAckme();
     }
 }

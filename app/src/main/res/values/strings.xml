@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DemoApp</string>
+    <string name="app_name">TxRxDemoappAndroid</string>
 
     <!-- All Activities -->
     <!-- menu -->
@@ -40,7 +40,8 @@
     <string name="menu_disconnect">Disconnect</string>
 
     <string name="write_button_text">Write</string>
-    <string name="read_button_text">Read</string>
+
+    <string name="repeat_write_button_text">Repeat</string>
 
     <string name="set_mode_request">Request change mode to: %1$s</string>
     <string name="set_mode_response">Current mode: %1$s</string>

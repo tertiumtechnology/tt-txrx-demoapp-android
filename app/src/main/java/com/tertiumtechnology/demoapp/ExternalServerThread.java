@@ -3,10 +3,9 @@ package com.tertiumtechnology.demoapp;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
-
-import com.tertiumtechnology.demoapp.util.Preferences;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,21 +21,21 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 public class ExternalServerThread extends Thread {
+
+    public interface DeviceActivityCommand {
+        void excecute(DeviceActivity activity, String inputData);
+    }
+
     public class NetworkBleReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, final Intent intent) {
-
-            final String action = intent.getAction();
-
             new Thread() {
                 @Override
                 public void run() {
-                    if (BleService.DEVICE_READ_DATA.equals(action)) {
-                        String dataRead = intent.getStringExtra(BleService.INTENT_EXTRA_DATA_VALUE);
+                    String dataRead = intent.getStringExtra(BleService.INTENT_EXTRA_DATA_VALUE);
 
-                        if (!dataRead.equals("")) {
-                            sendMsg(dataRead, false);
-                        }
+                    if (!TextUtils.isEmpty(dataRead)) {
+                        sendMsg(dataRead, false);
                     }
                 }
             }.start();
@@ -57,19 +56,34 @@ public class ExternalServerThread extends Thread {
 
     public static final int PORT_DEFAULT_VALUE = 1234;
 
+    private static final String TAG = ExternalServerThread.class.getSimpleName();
     private final int SERVER_SOCKET_ACCEPT_TIMEOUT = 1500;
     private final int SOCKET_READ_TIMEOUT = 1000;
-
-    private static final String TAG = ExternalServerThread.class.getSimpleName();
     private final NetworkBleReceiver networkBleReceiver;
     private WeakReference<DeviceActivity> deviceActivityWeakReference;
     private BufferedReader inputReader;
     private PrintWriter outputWriter = null;
     private Socket socket;
 
-    public ExternalServerThread(DeviceActivity deviceActivity) {
-        deviceActivityWeakReference = new WeakReference<DeviceActivity>(deviceActivity);
+    private String serverName;
+    private InetAddress address;
+    private int port;
+    private DeviceActivityCommand command;
+
+    public ExternalServerThread(String serverName, DeviceActivity deviceActivity, InetAddress address,
+                                int port) {
+        this.serverName = serverName;
+        this.address = address;
+        this.port = port;
+
+        deviceActivityWeakReference = new WeakReference<>(deviceActivity);
         networkBleReceiver = new NetworkBleReceiver();
+    }
+
+    public ExternalServerThread(String serverName, DeviceActivity deviceActivity, InetAddress address, int port,
+                                DeviceActivityCommand command) {
+        this(serverName, deviceActivity, address, port);
+        this.command = command;
     }
 
     public NetworkBleReceiver getNetworkBleReceiver() {
@@ -82,9 +96,6 @@ public class ExternalServerThread extends Thread {
             Log.w(TAG, "DeviceActivity not found");
             return;
         }
-
-        int port = Preferences.getExternalServerPort(deviceActivityWeakReference.get().getApplicationContext());
-        InetAddress address = Preferences.wifiIpAddress(deviceActivityWeakReference.get().getApplicationContext());
 
         if (address == null) {
             adviceOnUi(getResourceMsg("error_no_wifi_adddress", R.string.error_no_wifi_adddress));
@@ -100,11 +111,11 @@ public class ExternalServerThread extends Thread {
             serverSocket.setSoTimeout(SERVER_SOCKET_ACCEPT_TIMEOUT);
         } catch (IOException e) {
             adviceOnUi(getResourceMsg("error_unable_to_start_external_server", R.string
-                    .error_unable_to_start_external_server, e.getMessage()));
+                    .error_unable_to_start_external_server, serverName, e.getMessage()));
             return;
         }
 
-        adviceOnUi(getResourceMsg("external_server_started", R.string.external_server_started, serverSocket
+        adviceOnUi(getResourceMsg("external_server_started", R.string.external_server_started, serverName, serverSocket
                 .getLocalSocketAddress()));
 
         while (!Thread.currentThread().isInterrupted()) {
@@ -116,14 +127,14 @@ public class ExternalServerThread extends Thread {
                 continue;
             } catch (IOException e) {
                 adviceOnUi(getResourceMsg("error_unable_to_connect_client", R.string.error_unable_to_connect_client,
-                        e.getMessage()));
+                        serverName, e.getMessage()));
                 e.printStackTrace();
 
                 safeClose(socket);
                 break;
             }
 
-            adviceOnUi(getResourceMsg("client_connected", R.string.client_connected));
+            adviceOnUi(getResourceMsg("client_connected", R.string.client_connected, serverName));
 
             try {
                 inputReader = new BufferedReader(
@@ -141,12 +152,15 @@ public class ExternalServerThread extends Thread {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    deviceActivityWeakReference.get().doWriteRequest(finalInput);
+                                    if (deviceActivityWeakReference.get() != null && command != null) {
+                                        command.excecute(deviceActivityWeakReference.get(), finalInput);
+                                    }
                                 }
                             });
                         }
 
-                        adviceOnUi(getResourceMsg("client_connection_lost", R.string.client_connection_lost));
+                        adviceOnUi(getResourceMsg("client_connection_lost", R.string.client_connection_lost,
+                                serverName));
                         break;
                     } catch (SocketTimeoutException e) {
 
@@ -162,9 +176,36 @@ public class ExternalServerThread extends Thread {
             }
         }
 
-        adviceOnUi(getResourceMsg("external_server_stop", R.string.external_server_stop));
+        adviceOnUi(getResourceMsg("external_server_stop", R.string.external_server_stop, serverName));
 
         safeClose(serverSocket);
+    }
+
+    private void adviceOnUi(final String advice) {
+        Log.i(TAG, "Advice: " + advice);
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (deviceActivityWeakReference.get() != null) {
+                    Toast.makeText(deviceActivityWeakReference.get().getApplicationContext(), advice, Toast
+                            .LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private String getResourceMsg(String defaultMsg, int resMsgId, Object... args) {
+        if (deviceActivityWeakReference.get() != null) {
+            return deviceActivityWeakReference.get().getString(resMsgId, args);
+        }
+        return defaultMsg;
+    }
+
+    private void runOnUiThread(Runnable runnable) {
+        if (deviceActivityWeakReference.get() != null) {
+            deviceActivityWeakReference.get().runOnUiThread(runnable);
+        }
     }
 
     // workaround for Closeable support only starting from KITKAT (19)
@@ -187,32 +228,5 @@ public class ExternalServerThread extends Thread {
                 e.printStackTrace();
             }
         }
-    }
-
-    private void runOnUiThread(Runnable runnable) {
-        if (deviceActivityWeakReference.get() != null) {
-            deviceActivityWeakReference.get().runOnUiThread(runnable);
-        }
-    }
-
-    private void adviceOnUi(final String advice) {
-        Log.i(TAG, "Advice: " + advice);
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (deviceActivityWeakReference.get() != null) {
-                    Toast.makeText(deviceActivityWeakReference.get().getApplicationContext(), advice, Toast
-                            .LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
-
-    private String getResourceMsg(String defaultMsg, int resMsgId, Object... args) {
-        if (deviceActivityWeakReference.get() != null) {
-            return deviceActivityWeakReference.get().getString(resMsgId, args);
-        }
-        return defaultMsg;
     }
 }
