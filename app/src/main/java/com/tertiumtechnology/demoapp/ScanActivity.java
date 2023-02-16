@@ -38,7 +38,7 @@ public class ScanActivity extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_LOCATION = 2;
 
-    private static String[] filteredServiceUuids = new String[]{
+    private static final String[] filteredServiceUuids = new String[]{
             // Tertium sensor
             "f3770001-1164-49bc-8f22-0ac34292c217",
             // Zentri Ackme
@@ -65,8 +65,7 @@ public class ScanActivity extends AppCompatActivity {
             menu.findItem(R.id.menu_stop).setVisible(false);
             menu.findItem(R.id.menu_refresh).setActionView(null);
             menu.findItem(R.id.menu_refresh).setVisible(false);
-        }
-        else {
+        } else {
             menu.findItem(R.id.menu_scan).setVisible(false);
             menu.findItem(R.id.menu_stop).setVisible(true);
             menu.findItem(R.id.menu_refresh).setActionView(
@@ -81,14 +80,14 @@ public class ScanActivity extends AppCompatActivity {
             case R.id.menu_scan:
                 bleDeviceListAdapter.clear();
 
-                checkForBluetoothEnabled();
+                checkForBluetoothPermissionAndEnabled();
 
                 boolean permissionGranted = true;
 
                 List<String> permissions = new ArrayList<>(Arrays.asList(permission.ACCESS_COARSE_LOCATION,
                         permission.ACCESS_FINE_LOCATION));
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !checkPermissions(permissions)) {
+                if (!checkPermissions(permissions)) {
 
                     String[] permissionsArray = new String[permissions.size()];
                     permissionsArray = permissions.toArray(permissionsArray);
@@ -99,12 +98,7 @@ public class ScanActivity extends AppCompatActivity {
                 }
 
                 if (permissionGranted) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        txRxScanner.startScan(Arrays.asList(filteredServiceUuids));
-                    }
-                    else {
-                        txRxScanner.startScan();
-                    }
+                    txRxScanner.startScan(Arrays.asList(filteredServiceUuids));
                     supportInvalidateOptionsMenu();
                 }
                 break;
@@ -127,17 +121,44 @@ public class ScanActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[]
             grantResults) {
+
         if (requestCode == REQUEST_LOCATION) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    txRxScanner.startScan(Arrays.asList(filteredServiceUuids));
-                }
-                else {
-                    txRxScanner.startScan();
-                }
+                txRxScanner.startScan(Arrays.asList(filteredServiceUuids));
                 supportInvalidateOptionsMenu();
             }
+        }
+
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                checkForBluetoothEnabled();
+            }
+        }
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    private void checkForBluetoothPermissionAndEnabled() {
+        boolean permissionGranted = true;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            List<String> permissions = new ArrayList<>(Arrays.asList(permission.BLUETOOTH_CONNECT,
+                    permission.BLUETOOTH_SCAN));
+
+            if (!checkPermissions(permissions)) {
+                String[] permissionsArray = new String[permissions.size()];
+                permissionsArray = permissions.toArray(permissionsArray);
+
+                ActivityCompat.requestPermissions(this, permissionsArray, REQUEST_ENABLE_BT);
+
+                permissionGranted = false;
+            }
+        }
+
+        if (permissionGranted) {
+            checkForBluetoothEnabled();
         }
     }
 
@@ -181,64 +202,47 @@ public class ScanActivity extends AppCompatActivity {
         }
 
         activityResultLauncher = registerForActivityResult(new StartActivityForResult(),
-                new ActivityResultCallback<ActivityResult>() {
-                    @Override
-                    public void onActivityResult(ActivityResult result) {
-                        if (result.getResultCode() == Activity.RESULT_CANCELED) {
-                            finish();
-                        }
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_CANCELED) {
+                        finish();
                     }
                 });
 
         TxRxScanCallback txRxScanCallback = new TxRxScanCallback() {
             @Override
             public void afterStopScan() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        supportInvalidateOptionsMenu();
-                    }
-                });
+                runOnUiThread(() -> supportInvalidateOptionsMenu());
             }
 
             @Override
             public void onDeviceFound(final TxRxScanResult scanResult) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        bleDeviceListAdapter.addDevice(scanResult.getBluetoothDevice());
-                    }
-                });
+                runOnUiThread(() -> bleDeviceListAdapter.addDevice(scanResult.getBluetoothDevice()));
             }
         };
 
         txRxScanner = new TxRxScanner(bluetoothAdapter, txRxScanCallback);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.device_recycler_view);
+        RecyclerView recyclerView = findViewById(R.id.device_recycler_view);
 
         if (recyclerView != null) {
             recyclerView.setHasFixedSize(true);
 
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-            BleDeviceListAdapter.OnDeviceClickListener onDeviceClickListener = new BleDeviceListAdapter
-                    .OnDeviceClickListener() {
-                @Override
-                public void onDeviceClick(final BluetoothDevice device) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            final Intent intent = new Intent(ScanActivity.this, DeviceActivity.class);
-                            intent.putExtra(DeviceActivity.EXTRAS_DEVICE_NAME, device.getName());
-                            intent.putExtra(DeviceActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
-                            if (txRxScanner.isScanning()) {
-                                txRxScanner.stopScan();
-                            }
-                            startActivity(intent);
-                        }
-                    });
+            BleDeviceListAdapter.OnDeviceClickListener onDeviceClickListener = device -> runOnUiThread(() -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                        ContextCompat.checkSelfPermission(getApplicationContext(), permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                    return;
                 }
-            };
+
+                final Intent intent = new Intent(ScanActivity.this, DeviceActivity.class);
+                intent.putExtra(DeviceActivity.EXTRAS_DEVICE_NAME, device.getName());
+                intent.putExtra(DeviceActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+                if (txRxScanner.isScanning()) {
+                    txRxScanner.stopScan();
+                }
+                startActivity(intent);
+            });
 
             bleDeviceListAdapter = new BleDeviceListAdapter(onDeviceClickListener);
             recyclerView.setAdapter(bleDeviceListAdapter);
@@ -258,6 +262,6 @@ public class ScanActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        checkForBluetoothEnabled();
+        checkForBluetoothPermissionAndEnabled();
     }
 }

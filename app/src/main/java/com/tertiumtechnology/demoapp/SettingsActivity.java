@@ -26,7 +26,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private class IncrDecrUpdater implements Runnable {
 
-        private EditText timeout;
+        private final EditText timeout;
 
         IncrDecrUpdater(EditText timeout) {
             this.timeout = timeout;
@@ -109,68 +109,46 @@ public class SettingsActivity extends AppCompatActivity {
             timeoutValue) {
         timeoutEditText.setText(String.valueOf(timeoutValue));
 
-        Button timeoutButtonPlus = (Button) findViewById(plusButtonResId);
-        timeoutButtonPlus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                incrementTimeout(timeoutEditText);
-            }
-        });
+        Button timeoutButtonPlus = findViewById(plusButtonResId);
+        timeoutButtonPlus.setOnClickListener(v -> incrementTimeout(timeoutEditText));
 
         autoIncrements.put(timeoutEditText, false);
 
         timeoutButtonPlus.setOnLongClickListener(
-                new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View arg0) {
-                        autoIncrements.put(timeoutEditText, true);
-                        incrDecrHandler.post(new IncrDecrUpdater(timeoutEditText));
-                        return false;
-                    }
+                arg0 -> {
+                    autoIncrements.put(timeoutEditText, true);
+                    incrDecrHandler.post(new IncrDecrUpdater(timeoutEditText));
+                    return false;
                 }
         );
 
-        timeoutButtonPlus.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if ((event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL)
-                        && autoIncrements.get(timeoutEditText)) {
-                    autoIncrements.put(timeoutEditText, false);
-                }
-                return false;
+        timeoutButtonPlus.setOnTouchListener((v, event) -> {
+            if ((event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL)
+                    && autoIncrements.get(timeoutEditText)) {
+                autoIncrements.put(timeoutEditText, false);
             }
+            return false;
         });
 
-        Button timeoutButtonMinus = (Button) findViewById(minusButtonResId);
-        timeoutButtonMinus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                decrementTimeout(timeoutEditText);
-            }
-        });
+        Button timeoutButtonMinus = findViewById(minusButtonResId);
+        timeoutButtonMinus.setOnClickListener(v -> decrementTimeout(timeoutEditText));
 
         autoDecrements.put(timeoutEditText, false);
 
         timeoutButtonMinus.setOnLongClickListener(
-                new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View arg0) {
-                        autoDecrements.put(timeoutEditText, true);
-                        incrDecrHandler.post(new IncrDecrUpdater(timeoutEditText));
-                        return false;
-                    }
+                arg0 -> {
+                    autoDecrements.put(timeoutEditText, true);
+                    incrDecrHandler.post(new IncrDecrUpdater(timeoutEditText));
+                    return false;
                 }
         );
 
-        timeoutButtonMinus.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if ((event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL)
-                        && autoDecrements.get(timeoutEditText)) {
-                    autoDecrements.put(timeoutEditText, false);
-                }
-                return false;
+        timeoutButtonMinus.setOnTouchListener((v, event) -> {
+            if ((event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL)
+                    && autoDecrements.get(timeoutEditText)) {
+                autoDecrements.put(timeoutEditText, false);
             }
+            return false;
         });
     }
 
@@ -179,7 +157,7 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.device_toolbar);
+        Toolbar toolbar = findViewById(R.id.device_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(R.string.title_activity_settings);
 
@@ -191,45 +169,42 @@ public class SettingsActivity extends AppCompatActivity {
         // manage timeouts
         TxRxTimeouts currentTimeouts = TxRxPreferences.getTimeouts(this);
 
-        connectTimeout = (EditText) findViewById(R.id.connect_timeout);
+        connectTimeout = findViewById(R.id.connect_timeout);
         initTimeoutView(connectTimeout, R.id.connect_timeout_button_plus, R.id.connect_timeout_button_minus,
                 currentTimeouts.getConnectTimeout());
 
-        writeTimeout = (EditText) findViewById(R.id.write_timeout);
+        writeTimeout = findViewById(R.id.write_timeout);
         initTimeoutView(writeTimeout, R.id.write_timeout_button_plus, R.id.write_timeout_button_minus,
                 currentTimeouts.getWriteTimeout());
 
-        firstReadTimeout = (EditText) findViewById(R.id.first_read_timeout);
+        firstReadTimeout = findViewById(R.id.first_read_timeout);
         initTimeoutView(firstReadTimeout, R.id.first_read_timeout_button_plus, R.id.first_read_timeout_button_minus,
                 currentTimeouts.getFirstReadTimeout());
 
-        laterReadTimeout = (EditText) findViewById(R.id.later_read_timeout);
+        laterReadTimeout = findViewById(R.id.later_read_timeout);
         initTimeoutView(laterReadTimeout, R.id.later_read_timeout_button_plus, R.id.later_read_timeout_button_minus,
                 currentTimeouts.getLaterReadTimeout());
 
         // manage external server
-        externalServerWifiAddress = (TextView) findViewById(R.id.external_server_wifi_address);
+        externalServerWifiAddress = findViewById(R.id.external_server_wifi_address);
 
         InetAddress inetAddress = Preferences.wifiIpAddress(getApplicationContext());
         if (inetAddress != null) {
             externalServerWifiAddress.setText(inetAddress.getHostAddress());
         }
 
-        externalServerEnabled = (SwitchCompat) findViewById(R.id.external_server_enabled);
+        externalServerEnabled = findViewById(R.id.external_server_enabled);
         externalServerEnabled.setChecked(Preferences.getExternalServerEnabled(this));
-        externalServerEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                externalReadNotifyServerPort.setEnabled(isChecked);
-                externalEventServerPort.setEnabled(isChecked);
-            }
+        externalServerEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            externalReadNotifyServerPort.setEnabled(isChecked);
+            externalEventServerPort.setEnabled(isChecked);
         });
 
-        externalReadNotifyServerPort = (EditText) findViewById(R.id.external_server_wifi_read_notify_port);
+        externalReadNotifyServerPort = findViewById(R.id.external_server_wifi_read_notify_port);
         externalReadNotifyServerPort.setText(String.valueOf(Preferences.getExternalReadNotifyServerPort(this)));
         externalReadNotifyServerPort.setEnabled(externalServerEnabled.isChecked());
 
-        externalEventServerPort = (EditText) findViewById(R.id.external_server_wifi_event_port);
+        externalEventServerPort = findViewById(R.id.external_server_wifi_event_port);
         externalEventServerPort.setText(String.valueOf(Preferences.getExternalEventServerPort(this)));
         externalEventServerPort.setEnabled(externalServerEnabled.isChecked());
     }

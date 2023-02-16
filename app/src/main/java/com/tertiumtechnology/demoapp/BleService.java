@@ -36,7 +36,7 @@ public class BleService extends Service {
     public static final String INTENT_EXTRA_DATA_VALUE = "INTENT_EXTRA_DATA_VALUE";
 
     private final IBinder localBinder = new LocalBinder();
-    private TxRxDeviceCallback deviceCallback = new TxRxDeviceCallback() {
+    private final TxRxDeviceCallback deviceCallback = new TxRxDeviceCallback() {
         @Override
         public void onConnectionError(int errorCode) {
             Intent failedIntent = createIntentWithExtraValue(DEVICE_CONNECTION_OPERATION_FAILED, getString(R.string

@@ -1,6 +1,9 @@
 package com.tertiumtechnology.demoapp.util;
 
+import android.Manifest;
 import android.bluetooth.BluetoothDevice;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,7 +12,9 @@ import com.tertiumtechnology.demoapp.R;
 
 import java.util.ArrayList;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatTextView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class BleDeviceListAdapter extends RecyclerView.Adapter<BleDeviceListAdapter.ViewHolder> {
@@ -18,18 +23,23 @@ public class BleDeviceListAdapter extends RecyclerView.Adapter<BleDeviceListAdap
         void onDeviceClick(BluetoothDevice device);
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
 
-        AppCompatTextView deviceAddress;
-        AppCompatTextView deviceName;
+        final AppCompatTextView deviceAddress;
+        final AppCompatTextView deviceName;
 
         ViewHolder(View itemView) {
             super(itemView);
-            deviceName = (AppCompatTextView) itemView.findViewById(R.id.device_name);
-            deviceAddress = (AppCompatTextView) itemView.findViewById(R.id.device_address);
+            deviceName = itemView.findViewById(R.id.device_name);
+            deviceAddress = itemView.findViewById(R.id.device_address);
         }
 
         private void bind(final BluetoothDevice device, final OnDeviceClickListener listener) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                    ContextCompat.checkSelfPermission(itemView.getContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+
             final String deviceNameString = device.getName();
             if (deviceNameString != null && deviceNameString.length() > 0) {
                 deviceName.setText(deviceNameString);
@@ -39,17 +49,12 @@ public class BleDeviceListAdapter extends RecyclerView.Adapter<BleDeviceListAdap
             }
             deviceAddress.setText(device.getAddress());
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    listener.onDeviceClick(device);
-                }
-            });
+            itemView.setOnClickListener(v -> listener.onDeviceClick(device));
         }
     }
 
-    private OnDeviceClickListener listener;
-    private ArrayList<BluetoothDevice> bleDevices;
+    private final OnDeviceClickListener listener;
+    private final ArrayList<BluetoothDevice> bleDevices;
 
     public BleDeviceListAdapter(OnDeviceClickListener listener) {
         this.bleDevices = new ArrayList<>();
@@ -79,6 +84,7 @@ public class BleDeviceListAdapter extends RecyclerView.Adapter<BleDeviceListAdap
         holder.bind(bleDevices.get(position), listener);
     }
 
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.device_list_item, parent, false);

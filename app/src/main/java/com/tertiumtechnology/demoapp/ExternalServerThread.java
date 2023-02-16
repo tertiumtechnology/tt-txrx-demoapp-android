@@ -29,16 +29,13 @@ public class ExternalServerThread extends Thread {
     public class NetworkBleReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, final Intent intent) {
-            new Thread() {
-                @Override
-                public void run() {
-                    String dataRead = intent.getStringExtra(BleService.INTENT_EXTRA_DATA_VALUE);
+            new Thread(() -> {
+                String dataRead = intent.getStringExtra(BleService.INTENT_EXTRA_DATA_VALUE);
 
-                    if (!TextUtils.isEmpty(dataRead)) {
-                        sendMsg(dataRead, false);
-                    }
+                if (!TextUtils.isEmpty(dataRead)) {
+                    sendMsg(dataRead, false);
                 }
-            }.start();
+            }).start();
         }
 
         private void sendMsg(String msg, boolean ln) {
@@ -60,14 +57,14 @@ public class ExternalServerThread extends Thread {
     private final int SERVER_SOCKET_ACCEPT_TIMEOUT = 1500;
     private final int SOCKET_READ_TIMEOUT = 1000;
     private final NetworkBleReceiver networkBleReceiver;
-    private WeakReference<DeviceActivity> deviceActivityWeakReference;
+    private final WeakReference<DeviceActivity> deviceActivityWeakReference;
     private BufferedReader inputReader;
     private PrintWriter outputWriter = null;
     private Socket socket;
 
-    private String serverName;
-    private InetAddress address;
-    private int port;
+    private final String serverName;
+    private final InetAddress address;
+    private final int port;
     private DeviceActivityCommand command;
 
     public ExternalServerThread(String serverName, DeviceActivity deviceActivity, InetAddress address,
@@ -149,12 +146,9 @@ public class ExternalServerThread extends Thread {
                         while ((input = inputReader.readLine()) != null) {
                             final String finalInput = input;
 
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (deviceActivityWeakReference.get() != null && command != null) {
-                                        command.excecute(deviceActivityWeakReference.get(), finalInput);
-                                    }
+                            runOnUiThread(() -> {
+                                if (deviceActivityWeakReference.get() != null && command != null) {
+                                    command.excecute(deviceActivityWeakReference.get(), finalInput);
                                 }
                             });
                         }
@@ -184,13 +178,10 @@ public class ExternalServerThread extends Thread {
     private void adviceOnUi(final String advice) {
         Log.i(TAG, "Advice: " + advice);
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (deviceActivityWeakReference.get() != null) {
-                    Toast.makeText(deviceActivityWeakReference.get().getApplicationContext(), advice, Toast
-                            .LENGTH_SHORT).show();
-                }
+        runOnUiThread(() -> {
+            if (deviceActivityWeakReference.get() != null) {
+                Toast.makeText(deviceActivityWeakReference.get().getApplicationContext(), advice, Toast
+                        .LENGTH_SHORT).show();
             }
         });
     }

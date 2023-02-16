@@ -24,15 +24,6 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
-import com.tertiumtechnology.demoapp.ExternalServerThread.DeviceActivityCommand;
-import com.tertiumtechnology.demoapp.ExternalServerThread.NetworkBleReceiver;
-import com.tertiumtechnology.demoapp.util.Preferences;
-import com.tertiumtechnology.txrxlib.util.BleChecker;
-
-import java.net.InetAddress;
-
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,6 +32,13 @@ import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.AppCompatTextView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.tertiumtechnology.demoapp.ExternalServerThread.DeviceActivityCommand;
+import com.tertiumtechnology.demoapp.ExternalServerThread.NetworkBleReceiver;
+import com.tertiumtechnology.demoapp.util.Preferences;
+import com.tertiumtechnology.txrxlib.util.BleChecker;
+
+import java.net.InetAddress;
 
 public class DeviceActivity extends AppCompatActivity {
 
@@ -101,12 +99,11 @@ public class DeviceActivity extends AppCompatActivity {
                 }
             }
             else if (BleService.DEVICE_SETMODE.equals(intent.getAction())) {
-                int setModeValue = intent.getIntExtra(BleService.INTENT_EXTRA_DATA_VALUE, -1);
 
-                currentMode = setModeValue;
+                currentMode = intent.getIntExtra(BleService.INTENT_EXTRA_DATA_VALUE, -1);
                 supportInvalidateOptionsMenu();
 
-//                composeAndAppendMsg(getString(R.string.set_mode_response, getModeString(setModeValue)),
+//                composeAndAppendMsg(getString(R.string.set_mode_response, getModeString(currentMode)),
 //                        getMsgColor(R.color.colorReadText), true);
             }
             else if (BleService.DEVICE_CONNECTION_OPERATION_FAILED.equals(intent.getAction())) {
@@ -333,12 +330,7 @@ public class DeviceActivity extends AppCompatActivity {
         }
 
         if (menu.findItem(R.id.menu_disconnect).isVisible()) {
-            if (enableDisconnect) {
-                menu.findItem(R.id.menu_disconnect).setEnabled(true);
-            }
-            else {
-                menu.findItem(R.id.menu_disconnect).setEnabled(false);
-            }
+            menu.findItem(R.id.menu_disconnect).setEnabled(enableDisconnect);
         }
 
         return true;
@@ -390,13 +382,7 @@ public class DeviceActivity extends AppCompatActivity {
     }
 
     private int getMsgColor(int colorResourceId) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return getColor(colorResourceId);
-        }
-        else {
-            //noinspection deprecation
-            return getResources().getColor(colorResourceId);
-        }
+        return getColor(colorResourceId);
     }
 
     private void hideSoftKeyboard() {
@@ -406,12 +392,7 @@ public class DeviceActivity extends AppCompatActivity {
     }
 
     private void scrollDownReadView() {
-        readScrollView.post(new Runnable() {
-            @Override
-            public void run() {
-                readScrollView.fullScroll(ScrollView.FOCUS_DOWN);
-            }
-        });
+        readScrollView.post(() -> readScrollView.fullScroll(ScrollView.FOCUS_DOWN));
     }
 
     private ExternalServerThread startExternalServer(InetAddress address, int port,
@@ -451,7 +432,7 @@ public class DeviceActivity extends AppCompatActivity {
 
         // manage UI
         setContentView(R.layout.activity_device);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.device_toolbar);
+        Toolbar toolbar = findViewById(R.id.device_toolbar);
         setSupportActionBar(toolbar);
 
         String deviceName = getIntent().getStringExtra(EXTRAS_DEVICE_NAME);
@@ -461,33 +442,27 @@ public class DeviceActivity extends AppCompatActivity {
         getSupportActionBar().setSubtitle(deviceAddress);
 
         // UI write
-        writeEditText = (AppCompatEditText) findViewById(R.id.write_edit_text);
-        writeProgressBar = (ProgressBar) findViewById(R.id.write_progress_bar);
-        writeButton = (AppCompatButton) findViewById(R.id.write_button);
-        repeatWriteButton = (AppCompatButton) findViewById(R.id.repeat_write_button);
+        writeEditText = findViewById(R.id.write_edit_text);
+        writeProgressBar = findViewById(R.id.write_progress_bar);
+        writeButton = findViewById(R.id.write_button);
+        repeatWriteButton = findViewById(R.id.repeat_write_button);
 
-        writeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String editTextValue = writeEditText.getText().toString();
+        writeButton.setOnClickListener(v -> {
+            String editTextValue = writeEditText.getText().toString();
 
-                writeEditText.getText().clear();
-                doWriteRequest(editTextValue);
-            }
+            writeEditText.getText().clear();
+            doWriteRequest(editTextValue);
         });
 
-        repeatWriteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (lastCommand != null) {
-                    doWriteRequest(lastCommand);
-                }
+        repeatWriteButton.setOnClickListener(v -> {
+            if (lastCommand != null) {
+                doWriteRequest(lastCommand);
             }
         });
 
         // UI read
-        readScrollView = (ScrollView) findViewById(R.id.read_scroll_view);
-        readTextView = (AppCompatTextView) findViewById(R.id.read_text_view);
+        readScrollView = findViewById(R.id.read_scroll_view);
+        readTextView = findViewById(R.id.read_text_view);
 
         disableWriteButton();
         allowDisconnect();
@@ -503,12 +478,9 @@ public class DeviceActivity extends AppCompatActivity {
         }
 
         activityResultLauncher = registerForActivityResult(new StartActivityForResult(),
-                new ActivityResultCallback<ActivityResult>() {
-                    @Override
-                    public void onActivityResult(ActivityResult result) {
-                        if (result.getResultCode() == Activity.RESULT_CANCELED) {
-                            finish();
-                        }
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_CANCELED) {
+                        finish();
                     }
                 });
 
@@ -590,12 +562,7 @@ public class DeviceActivity extends AppCompatActivity {
 
             readNotifySocketThread = startExternalServer(address, readNotifyServerPort, readNotifySocketThread,
                     getString(R.string.external_server_type_read_notify),
-                    readIntentFilter, new DeviceActivityCommand() {
-                        @Override
-                        public void excecute(DeviceActivity activity, String inputData) {
-                            activity.doWriteRequest(inputData);
-                        }
-                    });
+                    readIntentFilter, (activity, inputData) -> activity.doWriteRequest(inputData));
 
             readNotifyNetworkBleReceiver = readNotifySocketThread.getNetworkBleReceiver();
 

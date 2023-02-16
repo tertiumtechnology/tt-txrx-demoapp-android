@@ -2,15 +2,16 @@ package com.tertiumtechnology.demoapp.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.wifi.WifiManager;
+import android.net.ConnectivityManager;
+import android.net.LinkAddress;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 
 import com.tertiumtechnology.demoapp.ExternalServerThread;
 import com.tertiumtechnology.demoapp.R;
 
-import java.math.BigInteger;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.ByteOrder;
 
 public class Preferences {
 
@@ -23,25 +24,22 @@ public class Preferences {
 
     public static int getExternalEventServerPort(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.prefs_name), 0);
-        int port = sharedPreferences.getInt(Preferences.PREF_EXTERNAL_EVENT_SERVER_PORT, ExternalServerThread
-                .PORT_DEFAULT_VALUE + 1);
 
-        return port;
+        return sharedPreferences.getInt(Preferences.PREF_EXTERNAL_EVENT_SERVER_PORT, ExternalServerThread
+                .PORT_DEFAULT_VALUE + 1);
     }
 
     public static int getExternalReadNotifyServerPort(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.prefs_name), 0);
-        int port = sharedPreferences.getInt(Preferences.PREF_EXTERNAL_READ_NOTIFY_SERVER_PORT, ExternalServerThread
-                .PORT_DEFAULT_VALUE);
 
-        return port;
+        return sharedPreferences.getInt(Preferences.PREF_EXTERNAL_READ_NOTIFY_SERVER_PORT, ExternalServerThread
+                .PORT_DEFAULT_VALUE);
     }
 
     public static boolean getExternalServerEnabled(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.prefs_name), 0);
-        boolean isEnabled = sharedPreferences.getBoolean(Preferences.PREF_EXTERNAL_SERVER_ENABLED, false);
 
-        return isEnabled;
+        return sharedPreferences.getBoolean(Preferences.PREF_EXTERNAL_SERVER_ENABLED, false);
     }
 
     public static void saveExternalEventServerPort(Context context, int port) {
@@ -67,22 +65,33 @@ public class Preferences {
 
     public static InetAddress wifiIpAddress(Context context) {
 
-        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
-            ipAddress = Integer.reverseBytes(ipAddress);
+        Network activeNetwork = connectivityManager.getActiveNetwork();
+
+        if(activeNetwork == null){
+            return null;
         }
 
-        byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
+        NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork);
 
-        InetAddress ipInetAddress;
-        try {
-            ipInetAddress = InetAddress.getByAddress(ipByteArray);
-        } catch (UnknownHostException ex) {
-            ipInetAddress = null;
+        if(networkCapabilities == null || !networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)){
+            return null;
         }
 
-        return ipInetAddress;
+        LinkProperties linkProperties = connectivityManager.getLinkProperties(activeNetwork);
+
+        if(linkProperties == null){
+            return null;
+        }
+
+        LinkAddress first = linkProperties.getLinkAddresses().stream()
+                .filter(linkAddress -> linkAddress.getAddress().getAddress().length == 4)
+                .findFirst().orElse(null);
+
+        if(first == null)
+            return null;
+
+        return first.getAddress();
     }
 }
